@@ -1,11 +1,11 @@
 # agent-share
 
-**What share of your traffic — and your revenue — came from a machine?**
+**What share of your traffic and your revenue came from a machine?**
 
 Nobody publishes this number. AI agents are already the majority of documentation
-traffic for API companies, but no operator can say what share of their own signups,
+traffic for API companies, yet no operator can say what share of their own signups,
 API calls, or dollars are machine-originated. `agent-share` is an Express middleware
-that answers that question, locally, with honest confidence levels.
+that answers that question locally, with honest confidence levels.
 
 ```
   agent-share report  (estimated)
@@ -38,46 +38,47 @@ app.post('/checkout/complete', (req, res) => {
   res.sendStatus(200);
 });
 
-// Print the report anywhere (or call share.report() for JSON).
+// Print the report anywhere, or call share.report() for JSON.
 console.log(share.print());
 ```
 
 ## How classification works
 
-Each request gets a verdict — `agent`, `human`, or `unknown` — from the strongest
+Each request gets a verdict of `agent`, `human`, or `unknown` from the strongest
 available signal:
 
 | # | Signal | Verdict | Confidence |
 |---|--------|---------|------------|
 | 1 | Customer-scoped `ck_` key ([tanso-oss](https://github.com/katrinalaszlo) agent signup) | agent | **certain** |
-| 2 | Web Bot Auth signature / `Signature-Agent` header | agent | strong |
+| 2 | Web Bot Auth signature or `Signature-Agent` header | agent | strong |
 | 3 | Known agent user-agent (GPTBot, Claude, python-httpx, …) | agent | moderate |
 | 4 | Machine-shaped route (`llms.txt`, `*.md`, `pricing.json`, `/mcp`) | agent | moderate |
 | 5 | Full browser context (UA + referer + accept-language) | human | moderate |
 | 6 | Everything else | unknown | weak |
 
-Two properties are deliberate:
+Two properties are deliberate.
 
-- **`unknown` is reported, not hidden.** A browser UA with no referer and no
-  accept-language is not proof of a human, and the size of the unknown bucket is
-  itself a finding.
-- **The report says `estimated` unless every verdict is certain.** Signature-based
-  detection is inference. If your product issues customer-scoped agent keys
-  (tanso-oss `ck_` keys), attribution stops being an estimate — a request carrying
-  one is machine-originated by construction.
+First, `unknown` is reported rather than hidden. A browser UA with no referer and no
+accept-language is not proof of a human, and the size of the unknown bucket is itself
+a finding.
+
+Second, the report says `estimated` unless every verdict is certain, because
+signature-based detection is inference. If your product issues customer-scoped agent
+keys (tanso-oss `ck_` keys), attribution stops being an estimate. A request carrying
+one is machine-originated by construction.
 
 ## Privacy
 
 Local only. Observations are appended to a JSONL file on your infrastructure. No
-phone-home, no account, no data leaves your machine. Observed fields: timestamp,
-path, verdict, signal, optional revenue cents. No IPs, no bodies, no headers stored.
+phone-home, no account, and no data leaves your machine. Observed fields are the
+timestamp, path, verdict, signal, and optional revenue cents. No IPs, no bodies,
+no stored headers.
 
 ## What it is not
 
-- **Not a bot blocker.** It observes and reports; it never rejects a request.
-- **Not analytics.** One question, two numbers.
-- **Not reconciliation.** Revenue means dollars you report to it, not a tie-out
-  against your billing system.
+It is not a bot blocker. It observes and reports and never rejects a request. It is
+not analytics either, just one question and two numbers. And revenue means dollars
+you report to it, not a reconciliation against your billing system.
 
 ## Demo
 
