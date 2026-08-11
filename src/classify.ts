@@ -2,6 +2,8 @@
 // Signals are ordered strongest-first; the first certain signal wins,
 // weaker signals accumulate into a score.
 
+import { verifyClaim, type VendorRanges } from './verify.ts';
+
 export type Verdict = 'agent' | 'human' | 'unknown';
 
 export interface Classification {
@@ -13,6 +15,14 @@ export interface Classification {
 export interface RequestLike {
   path: string;
   headers: Record<string, string | string[] | undefined>;
+}
+
+// Optional IP-verification context. When ranges are loaded and the UA claims
+// a vendor identity, the claim is checked instead of trusted. The IP is used
+// for the in-memory check only — it never appears in the Classification.
+export interface ClassifyContext {
+  ip?: string;
+  ranges?: VendorRanges[];
 }
 
 // Known agent user-agent substrings. Maintained list; stale by nature.
@@ -44,7 +54,7 @@ function header(req: RequestLike, name: string): string {
   return (Array.isArray(v) ? v[0] : v) ?? '';
 }
 
-export function classify(req: RequestLike): Classification {
+export function classify(req: RequestLike, ctx?: ClassifyContext): Classification {
   // 1. Customer-scoped agent key (connected mode). Issued through the agent
   //    signup path, so machine-originated by construction.
   const auth = header(req, 'authorization');
@@ -63,9 +73,21 @@ export function classify(req: RequestLike): Classification {
 
   const ua = header(req, 'user-agent').toLowerCase();
 
-  // 3. Known agent user-agent.
+  // 3. Known agent user-agent. With vendor ranges loaded, the claim is
+  //    checked against the vendor's published IPs: verified upgrades to
+  //    strong, spoofed downgrades to unknown (a forged agent UA is not
+  //    evidence of a human), claimed keeps the moderate default.
   const uaHit = AGENT_UA.find(m => ua.includes(m));
   if (uaHit) {
+    if (ctx?.ranges?.length) {
+      const result = verifyClaim(ua, ctx.ip, ctx.ranges);
+      if (result === 'verified') {
+        return { verdict: 'agent', confidence: 'strong', signal: `verified:${uaHit}` };
+      }
+      if (result === 'spoofed') {
+        return { verdict: 'unknown', confidence: 'strong', signal: `spoofed-ua:${uaHit}` };
+      }
+    }
     return { verdict: 'agent', confidence: 'moderate', signal: `ua:${uaHit}` };
   }
 

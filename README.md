@@ -82,6 +82,26 @@ system issued it through the agent signup path. Inference is scaffolding; identi
 you issue is the real answer. That is why the report distinguishes `estimated` from
 `exact` instead of pretending one number.
 
+## Verification
+
+A subset of user-agent claims can be checked. OpenAI and Anthropic publish the IP
+ranges their crawlers use, so a request claiming to be GPTBot or ClaudeBot can be
+compared against them. A UA match with an IP inside the published range is
+`verified`. A UA match with no IP to check, or a UA no published range vouches for,
+stays `claimed`. A UA match with an IP outside every published range is `spoofed`
+and counted as unknown rather than agent, since a request lying about its identity
+has forfeited the benefit of the doubt.
+
+Turn it on with the `verifyRanges` option:
+
+```js
+const share = agentShare({ path: './agent-share.jsonl', verifyRanges: true });
+```
+
+Ranges are fetched at startup and refreshed on an interval. The IP is used for the
+in-memory check only and is never stored. The full model, including where it is
+wrong and in which direction, is in [METHODOLOGY.md](METHODOLOGY.md).
+
 ## Collecting from Vercel
 
 The middleware pattern also works as an edge function that logs one line per request.
@@ -108,8 +128,10 @@ you report to it, not a reconciliation against your billing system.
 ## Demo
 
 ```bash
-npm run demo   # replays a synthetic day of traffic and prints the report
-npm test       # 11 tests
+npm run demo        # replays a synthetic day of traffic and prints the report
+npm test            # full test suite
+npm run label       # sample observations and hand-label them against the classifier
+npm run precision   # confusion matrix and per-verdict precision from your labels
 ```
 
 ## License

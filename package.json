@@ -6,6 +6,8 @@
   "main": "src/index.ts",
   "scripts": {
     "demo": "node demo/run.ts",
+    "label": "node scripts/label.ts",
+    "precision": "node scripts/precision.ts",
     "test": "node --test 'test/*.test.ts'"
   },
   "keywords": [
