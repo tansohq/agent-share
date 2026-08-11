@@ -8,9 +8,20 @@
     "demo": "node demo/run.ts",
     "test": "node --test 'test/*.test.ts'"
   },
-  "keywords": ["ai-agents", "agent-traffic", "attribution", "analytics", "express", "middleware"],
+  "keywords": [
+    "ai-agents",
+    "agent-traffic",
+    "attribution",
+    "analytics",
+    "express",
+    "middleware"
+  ],
   "license": "MIT",
   "peerDependencies": {
     "express": ">=4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
   }
 }

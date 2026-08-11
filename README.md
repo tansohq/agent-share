@@ -67,6 +67,31 @@ signature-based detection is inference. If your product issues customer-scoped a
 keys (tanso-oss `ck_` keys), attribution stops being an estimate. A request carrying
 one is machine-originated by construction.
 
+## Can't a request just lie?
+
+Yes. A user-agent is a string the client chooses, so signature-based verdicts are
+claims rather than proof. Two consequences are built in.
+
+The error runs one way. Agents pretending to be browsers make the count miss agents,
+while there is little reason to falsely claim being GPTBot. Read the estimated agent
+share as a floor.
+
+And two signals can't lie. A Web Bot Auth signature is cryptographic, and a
+customer-scoped `ck_` key is machine-originated by construction because your own
+system issued it through the agent signup path. Inference is scaffolding; identity
+you issue is the real answer. That is why the report distinguishes `estimated` from
+`exact` instead of pretending one number.
+
+## Collecting from Vercel
+
+The middleware pattern also works as an edge function that logs one line per request.
+Pipe your runtime logs through the collector to build the report from production
+traffic:
+
+```bash
+vercel logs your-domain.com --json --follow | node collector/vercel.ts data/observations.jsonl
+```
+
 ## Privacy
 
 Local only. Observations are appended to a JSONL file on your infrastructure. No
