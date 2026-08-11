@@ -1,0 +1,16 @@
+{
+  "name": "@tansohq/agent-share",
+  "version": "0.1.0",
+  "description": "What share of your traffic came from a machine? Express middleware that classifies each request as agent, human, or unknown and reports the share — locally, with confidence levels, no phone-home.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "demo": "node demo/run.ts",
+    "test": "node --test 'test/*.test.ts'"
+  },
+  "keywords": ["ai-agents", "agent-traffic", "attribution", "analytics", "express", "middleware"],
+  "license": "MIT",
+  "peerDependencies": {
+    "express": ">=4"
+  }
+}
